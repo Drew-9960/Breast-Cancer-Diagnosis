@@ -1,0 +1,30 @@
+# Ignore virtual environment
+.venv/
+env/
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore processed datasets but keep the original
+!data/breast_cancer_data.csv
+data/processed_features.csv
+data/processed_labels.csv
+
+# Ignore large models but keep training summaries
+!model/training_summary.txt
+model/best_model.pkl
+
+# Ignore MLflow experiment logs but keep metadata
+!mlruns/meta.yaml
+mlruns/
+mlflow.db
+
+# Ignore logs and temporary files
+logs/*.log
+logs/*.tmp
+
+# Ignore VS Code & Jupyter settings
+.vscode/
+.ipynb_checkpoints/
