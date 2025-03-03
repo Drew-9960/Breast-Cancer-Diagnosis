@@ -6,8 +6,8 @@ url = "https://archive.ics.uci.edu/static/public/17/data.csv"
 df = pd.read_csv(url)
 
 # Print column names for verification
-print("df.columns.count()")
-print(df.rows.count())
+print(f"Number of columns: {df.shape[1]}")
+print(f"Number of rows: {df.shape[0]}")
 print("\n✅ Dataset Columns:")
 print(df.columns.tolist())
 
