@@ -5,10 +5,10 @@ import pandas as pd
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-# Initialize FastAPI
+# Initialize FastAPI application
 app = FastAPI(title="Breast Cancer Prediction API")
 
-# Define request schema
+# Define the input data schema
 class PredictionInput(BaseModel):
     radius1: float
     texture1: float
@@ -41,22 +41,35 @@ class PredictionInput(BaseModel):
     symmetry3: float
     fractal_dimension3: float
 
-# Try to load the model from MLflow, fallback to joblib
+# Load the model from MLflow; fallback to a locally stored joblib model if necessary
 try:
     mlflow.set_tracking_uri("http://localhost:5001")
     model = mlflow.pyfunc.load_model("models:/BreastCancerModel/Production")
     model_source = "MLflow"
 except Exception as e:
-    print(f"⚠️ MLflow model load failed: {e}. Loading local model...")
+    print(f"Warning: Failed to load MLflow model: {e}. Loading local model instead.")
     model = joblib.load("model/best_model.pkl")
     model_source = "Local joblib model"
 
 @app.get("/")
 def home():
-    return {"message": f"Breast Cancer Prediction API is running! Model source: {model_source}"}
+    """
+    API health check endpoint.
+    Returns a message indicating that the API is running and specifies the model source.
+    """
+    return {"message": f"Breast Cancer Prediction API is running. Model source: {model_source}"}
 
 @app.post("/predict/")
 def predict(data: PredictionInput):
+    """
+    Predicts the likelihood of breast cancer based on the input features.
+
+    Input:
+        - JSON object containing numerical feature values.
+
+    Output:
+        - Prediction result as either 'Malignant' or 'Benign'.
+    """
     input_data = pd.DataFrame([data.dict()])
     prediction = model.predict(input_data)
     diagnosis = "Malignant" if prediction[0] == 1 else "Benign"
@@ -64,3 +77,4 @@ def predict(data: PredictionInput):
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
+

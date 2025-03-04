@@ -1,47 +1,48 @@
 import pandas as pd
-import pandas as pd
 
-# Load dataset manually from UCI
+# Load dataset manually from UCI repository
 url = "https://archive.ics.uci.edu/static/public/17/data.csv"
 df = pd.read_csv(url)
 
-# Print column names for verification
-print(f"Number of columns: {df.shape[1]}")
+# Display dataset shape
 print(f"Number of rows: {df.shape[0]}")
-print("\n✅ Dataset Columns:")
+print(f"Number of columns: {df.shape[1]}")
+
+# Display column names for verification
+print("\nDataset Columns:")
 print(df.columns.tolist())
 
-# Ensure ID and Diagnosis exist
+# Ensure required columns exist
 if "ID" in df.columns and "Diagnosis" in df.columns:
-    print("\n✅ 'ID' and 'Diagnosis' columns successfully loaded!")
+    print("\n'ID' and 'Diagnosis' columns successfully loaded.")
 else:
-    print("\n❌ 'ID' or 'Diagnosis' column is missing!")
+    print("\n'ID' or 'Diagnosis' column is missing. Check dataset structure.")
 
 # Save the dataset locally for consistency
-df.to_csv("data/breast_cancer_data.csv", index=False)
-print("\n✅ Dataset saved locally at 'data/breast_cancer_data.csv'.")
+dataset_path = "data/breast_cancer_data.csv"
+df.to_csv(dataset_path, index=False)
+print(f"\nDataset saved locally at '{dataset_path}'.")
 
-# Extract Features (X) and Target (y)
-X = df.drop(columns=['ID', 'Diagnosis'])  # Remove ID and target column
-y = df['Diagnosis']  # Target variable
+# Extract features (X) and target variable (y)
+X = df.drop(columns=["ID", "Diagnosis"])  # Remove ID and target column
+y = df["Diagnosis"]
 
-# Convert 'Diagnosis' (M/B) to numeric values (1 = Malignant, 0 = Benign)
-y = y.replace({'M': 1, 'B': 0})
+# Convert 'Diagnosis' column ('M' for Malignant, 'B' for Benign) to numeric values
+y = y.replace({"M": 1, "B": 0})
 
-# Print column names for verification
-print("\n✅ Feature Columns Retrieved from Dataset:")
+# Display retrieved feature columns
+print("\nFeature Columns Retrieved:")
 print(X.columns.tolist())
 
 # Verify class distribution
-print("\n✅ Class Distribution:")
+print("\nClass Distribution:")
 print(y.value_counts())
 
-# Print first few rows
-print("\n✅ First 5 Rows of Features:")
+# Display first few rows of features and target labels
+print("\nFirst 5 Rows of Features:")
 print(X.head())
 
-# Print first few labels
-print("\n✅ First 5 Labels:")
+print("\nFirst 5 Labels:")
 print(y.head())
 
-print("\n✅ Data Verification Completed!")
+print("\nData verification completed.")

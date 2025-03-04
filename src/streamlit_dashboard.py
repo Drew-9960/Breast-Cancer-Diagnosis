@@ -4,7 +4,6 @@ import joblib
 import requests
 import matplotlib.pyplot as plt
 import seaborn as sns
-import optuna.visualization as vis
 import mlflow
 from mlflow.tracking import MlflowClient
 
@@ -15,25 +14,30 @@ df = pd.read_csv("data/processed_features.csv")
 mlflow.set_tracking_uri("http://localhost:5000")
 client = MlflowClient()
 
-st.title("🩺 Breast Cancer Prediction & Monitoring Dashboard")
+st.title("Breast Cancer Prediction & Monitoring Dashboard")
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
-options = st.sidebar.radio("Select an option:", ["🏠 Home", "📊 Data Visualization", "🔍 Make Prediction", "📈 Model Comparison", "⚙️ Drift Monitoring"])
+options = st.sidebar.radio(
+    "Select an option:", 
+    ["Home", "Data Visualization", "Make Prediction", "Model Comparison", "Drift Monitoring"]
+)
 
-# 🏠 Home Page
-if options == "🏠 Home":
-    st.write("Welcome to the **Breast Cancer Prediction Dashboard**.")
-    st.write("🔹 **Train and deploy models automatically** using MLflow.")
-    st.write("🔹 **Visualize feature distributions and data drift.**")
-    st.write("🔹 **Compare different model versions & monitor performance.**")
-    st.write("🔹 **Make real-time predictions using the latest model.**")
+# Home Page
+if options == "Home":
+    st.write("## Welcome to the Breast Cancer Prediction Dashboard")
+    st.markdown("""
+    - **Train and deploy models automatically** using MLflow.
+    - **Visualize feature distributions and detect data drift.**
+    - **Compare different model versions and track performance.**
+    - **Make real-time predictions using the latest trained model.**
+    """)
 
-# 📊 Data Visualization
-elif options == "📊 Data Visualization":
+# Data Visualization
+elif options == "Data Visualization":
     st.subheader("Feature Distribution")
-    
-    # Select a feature
+
+    # Select a feature for visualization
     feature = st.selectbox("Select a feature to visualize:", df.columns)
 
     # Plot distribution
@@ -41,20 +45,18 @@ elif options == "📊 Data Visualization":
     sns.histplot(df[feature], kde=True, ax=ax)
     st.pyplot(fig)
 
-    # Display feature correlation heatmap
+    # Show correlation heatmap if selected
     if st.checkbox("Show Correlation Heatmap"):
         fig, ax = plt.subplots(figsize=(10, 8))
         sns.heatmap(df.corr(), cmap="coolwarm", annot=True, fmt=".2f", ax=ax)
         st.pyplot(fig)
 
-# 🔍 Make Prediction
-elif options == "🔍 Make Prediction":
+# Make Prediction
+elif options == "Make Prediction":
     st.subheader("Enter Patient Data for Prediction")
 
     # Create input fields for user data
-    input_data = {}
-    for feature in df.columns:
-        input_data[feature] = st.number_input(f"{feature}", value=0.0)
+    input_data = {feature: st.number_input(f"{feature}", value=0.0) for feature in df.columns}
 
     # Convert input to dataframe
     input_df = pd.DataFrame([input_data])
@@ -63,52 +65,55 @@ elif options == "🔍 Make Prediction":
     if st.button("Predict"):
         try:
             response = requests.post("http://127.0.0.1:8000/predict/", json=input_data)
-            prediction = response.json()["prediction"]
-            st.success(f"🩺 **Prediction: {prediction}**")
-        except:
-            st.error("⚠️ Error: Unable to connect to the prediction API.")
+            prediction = response.json().get("prediction", "Error retrieving prediction")
+            st.success(f"Prediction: {prediction}")
+        except requests.exceptions.RequestException:
+            st.error("Error: Unable to connect to the prediction API.")
 
-# 📈 Model Comparison (MLflow)
-elif options == "📈 Model Comparison":
+# Model Comparison (MLflow)
+elif options == "Model Comparison":
     st.subheader("Compare Model Versions")
 
-    # Get registered models
+    # Retrieve registered models
     models = client.search_model_versions("name='BreastCancerModel'")
     
-    # Display models and their metrics
+    # Display model versions and metrics
     for model in models:
         st.write(f"**Version {model.version}** - {model.current_stage}")
         run = client.get_run(model.run_id)
-        st.write(f"🔹 Accuracy: {run.data.metrics['accuracy']:.4f}")
-        st.write(f"🔹 Registered: {model.creation_timestamp}")
+        st.write(f"- Accuracy: {run.data.metrics.get('accuracy', 'N/A'):.4f}")
+        st.write(f"- Registered: {model.creation_timestamp}")
         st.write("---")
 
     # Visualizing Optuna hyperparameter tuning results
     st.subheader("Hyperparameter Optimization Results")
-    
-    st.subheader("Optimization History")
-    st.components.v1.html(open("reports/optuna_optimization_history.html").read(), height=600)
 
-    st.subheader("Parallel Coordinates")
-    st.components.v1.html(open("reports/optuna_parallel_coordinates.html").read(), height=600)
+    try:
+        st.subheader("Optimization History")
+        st.components.v1.html(open("reports/optuna_optimization_history.html").read(), height=600)
 
-    st.subheader("Feature Importance")
-    st.components.v1.html(open("reports/optuna_param_importances.html").read(), height=600)
+        st.subheader("Parallel Coordinates")
+        st.components.v1.html(open("reports/optuna_parallel_coordinates.html").read(), height=600)
 
-# ⚙️ Drift Monitoring
-elif options == "⚙️ Drift Monitoring":
+        st.subheader("Feature Importance")
+        st.components.v1.html(open("reports/optuna_param_importances.html").read(), height=600)
+    except FileNotFoundError:
+        st.error("Error: Optuna visualization reports not found.")
+
+# Drift Monitoring
+elif options == "Drift Monitoring":
     st.subheader("Feature Drift Detection")
-    
+
     try:
         drift_results = pd.read_csv("reports/drift_report.csv")
         st.write(drift_results)
-        
-        drifted_features = drift_results[drift_results['Drift Detected'] == 'Yes']
+
+        drifted_features = drift_results[drift_results["Drift Detected"] == "Yes"]
         if not drifted_features.empty:
-            st.warning("⚠️ Data drift detected in the following features:")
+            st.warning("Data drift detected in the following features:")
             st.write(drifted_features)
         else:
-            st.success("✅ No significant data drift detected.")
+            st.success("No significant data drift detected.")
 
     except FileNotFoundError:
-        st.error("⚠️ Drift report not found. Run `drift_detector.py` first.")
+        st.error("Error: Drift report not found. Run `drift_detector.py` first.")
