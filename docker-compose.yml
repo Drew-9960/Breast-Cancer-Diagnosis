@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  api:
+    build: .
+    container_name: breast_cancer_api
+    ports:
+      - "8000:8000"
+    restart: always
+
+  dashboard:
+    build: .
+    container_name: breast_cancer_dashboard
+    ports:
+      - "8501:8501"
+    restart: always

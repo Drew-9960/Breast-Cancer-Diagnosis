@@ -1,11 +1,17 @@
+# Use an official Python image
 FROM python:3.9
 
+# Set the working directory
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+# Copy everything
+COPY . .
 
-COPY model/best_breast_cancer_model.pkl .
-COPY src/ .
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["bash", "run.sh"]
+# Expose API & Streamlit ports
+EXPOSE 8000 8501
+
+# Run both API & Streamlit using a script
+CMD ["sh", "start_services.sh"]
