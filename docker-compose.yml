@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  mlflow:
+    build: .
+    container_name: breast_cancer_mlflow
+    ports:
+      - "5001:5001"
+    environment:
+      - MLFLOW_TRACKING_URI=http://breast_cancer_mlflow:5001
+    restart: always
+
+  api:
+    build: .
+    container_name: breast_cancer_api
+    depends_on:
+      - mlflow
+    ports:
+      - "8000:8000"
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - MLFLOW_TRACKING_URI=http://breast_cancer_mlflow:5001
+    restart: always
+
+  dashboard:
+    build: .
+    container_name: breast_cancer_dashboard
+    depends_on:
+      - mlflow
+      - api
+    ports:
+      - "8501:8501"
+    environment:
+      - STREAMLIT_PORT=8501
+      - MLFLOW_TRACKING_URI=http://breast_cancer_mlflow:5001
+    restart: always

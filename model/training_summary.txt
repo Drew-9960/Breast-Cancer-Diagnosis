@@ -1,4 +1,4 @@
 
 Best Model Training Run:
 - Accuracy: 0.9649
-- Parameters: {'n_estimators': 211, 'max_depth': 3, 'learning_rate': 0.010059650415923512}
+- Parameters: {'n_estimators': 86, 'max_depth': 8, 'learning_rate': 0.010917941139293662}
