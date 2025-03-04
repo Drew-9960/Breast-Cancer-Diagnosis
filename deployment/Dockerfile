@@ -1,17 +1,20 @@
-# Use an official Python image
+# Use Python 3.9 as base image
 FROM python:3.9
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Copy everything
-COPY . .
+# Copy requirements file FIRST (to leverage Docker caching)
+COPY ../requirements.txt .
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose API & Streamlit ports
-EXPOSE 8000 8501
+# Copy rest of the application code
+COPY .. .
 
-# Run both API & Streamlit using a script
-CMD ["sh", "start_services.sh"]
+# Expose necessary ports
+EXPOSE 8000 8501 5001
+
+# Default command (can be overridden)
+CMD ["bash", "deployment/start_services.sh"]
