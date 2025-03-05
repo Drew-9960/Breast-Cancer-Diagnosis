@@ -1,6 +1,6 @@
 # Breast Cancer Diagnosis Model
 
-<span style="background-color: yellow;">**Note:** In Development, docker deployment is functional within a virtual env.</span>
+<span style="background-color: yellow;">**Note:** Docker deployment is functional.</span>
 
 ## Overview
 This project is a **machine learning pipeline** for classifying **breast cancer tumors** as **benign** or **malignant** using the **Breast Cancer Wisconsin (Diagnostic) Dataset**. The pipeline includes data preprocessing, feature engineering, model training, hyperparameter tuning, model versioning with MLflow, and deployment using **FastAPI** and **Streamlit**.
@@ -12,7 +12,6 @@ This project is a **machine learning pipeline** for classifying **breast cancer 
 - **Inference API**: FastAPI server for making predictions.
 - **Streamlit Dashboard**: Visualizes model performance and predictions.
 - **Docker Support**: Can be deployed in a containerized environment.
-- **Kubernetes Deployment**: Supports scaling and orchestration.
 
 ---
 
