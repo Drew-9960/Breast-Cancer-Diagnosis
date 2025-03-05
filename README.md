@@ -1,6 +1,6 @@
 # Breast Cancer Diagnosis Model
 
-**Note:** In Development, docker deployment is functional within a virtual env. {: .highlight-yellow}
+> <span style="background-color: yellow;">**Note:** ⚠️ In Development, docker deployment is functional within a virtual env.</span>
 
 ## Overview
 This project is a **machine learning pipeline** for classifying **breast cancer tumors** as **benign** or **malignant** using the **Breast Cancer Wisconsin (Diagnostic) Dataset**. The pipeline includes data preprocessing, feature engineering, model training, hyperparameter tuning, model versioning with MLflow, and deployment using **FastAPI** and **Streamlit**.
