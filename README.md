@@ -1,6 +1,6 @@
 # Breast Cancer Diagnosis Model
 
-> **Note:** ⚠️ In Development, docker deployment is functional within a virtual env.  
+> **Note:** In Development, docker deployment is functional within a virtual env.  
 {: .highlight-yellow}
 
 ## Overview
