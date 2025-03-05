@@ -1,5 +1,8 @@
 # Breast Cancer Diagnosis Model
 
+> **Note:** ⚠️ In Development, docker deployment is functional within a virtual env.  
+{: .highlight-yellow}
+
 ## Overview
 This project is a **machine learning pipeline** for classifying **breast cancer tumors** as **benign** or **malignant** using the **Breast Cancer Wisconsin (Diagnostic) Dataset**. The pipeline includes data preprocessing, feature engineering, model training, hyperparameter tuning, model versioning with MLflow, and deployment using **FastAPI** and **Streamlit**.
 
@@ -19,12 +22,16 @@ This project is a **machine learning pipeline** for classifying **breast cancer 
 Breast-Cancer-Diagnosis/
 │
 ├── data/                      # Stores processed datasets
-│   ├── raw_data.csv           # Original dataset
+│   ├── breast_cancer_data.csv  # Original dataset
 │   ├── processed_features.csv # Cleaned dataset
+│   ├── processed_labels.csv # Cleaned dataset
 │
 ├── model/                     # Stores trained models
 │   ├── best_model.pkl         # Best trained model
 │   ├── training_summary.txt   # Model metadata
+│
+├── reports/                     # Stores reports
+│   ├── drift_reports.csv         # drift results
 │
 ├── src/                       # Source code
 │   ├── feature_engineering.py   # Data preprocessing
@@ -33,13 +40,17 @@ Breast-Cancer-Diagnosis/
 │   ├── streamlit_dashboard.py   # Dashboard for monitoring
 │   ├── verify_dataset.py        # Data validation
 │   ├── drift_detector.py        # Detecting data drift
+│   ├── _init_.py                # init
+│   ├── config.py                # Config
 │
-├── deployment/                 # Deployment scripts
-│   ├── run.sh                   # Full ML pipeline execution
-│   ├── start_services.sh         # Starts API and dashboard
-│   ├── docker-compose.yml        # Docker setup
-│   ├── kubernetes/               # Kubernetes manifests
+├── Kubernetes/                 # Kubernetes manifests
+│   ├── deployment.yaml        
+│   ├── service.yaml               
 │
+├── Dockerfile                # Dockerfile
+├── docker-compose.yml        # Docker setup
+├── run.sh                   # Full ML pipeline execution
+├── start_services.sh         # Starts API and dashboard
 ├── mlflow.db                   # MLflow experiment tracking database
 ├── mlruns/                      # MLflow model artifacts
 ├── requirements.txt             # Python dependencies
@@ -130,12 +141,6 @@ http://127.0.0.1:8501
 Build and run using Docker Compose:
 ```bash
 docker-compose up --build
-```
-
-### **2. Kubernetes Deployment**
-Apply Kubernetes manifests:
-```bash
-kubectl apply -f deployment/kubernetes/
 ```
 
 ---
