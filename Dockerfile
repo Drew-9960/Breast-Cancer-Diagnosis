@@ -14,5 +14,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . /app/
 
 # Set the default command to start the API server
-CMD ["uvicorn", "src.inference_api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["mlflow", "server", "--backend-store-uri", "sqlite:///mlflow.db", "--host", "0.0.0.0", "--port", "5001"]
+
 

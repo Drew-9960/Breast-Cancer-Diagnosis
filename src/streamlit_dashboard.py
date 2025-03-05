@@ -1,119 +1,66 @@
 import streamlit as st
 import pandas as pd
-import joblib
 import requests
-import matplotlib.pyplot as plt
-import seaborn as sns
 import mlflow
 from mlflow.tracking import MlflowClient
+import os
 
-# Load dataset for visualization
-df = pd.read_csv("data/processed_features.csv")
+# Load environment variables
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://breast_cancer_mlflow:5001")
+API_URL = os.getenv("API_URL", "http://breast_cancer_api:8000")
 
 # Set MLflow tracking URI
-mlflow.set_tracking_uri("http://localhost:5000")
+mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 client = MlflowClient()
 
-st.title("Breast Cancer Prediction & Monitoring Dashboard")
+st.title("Breast Cancer Prediction Dashboard")
 
-# Sidebar for navigation
-st.sidebar.title("Navigation")
-options = st.sidebar.radio(
-    "Select an option:", 
-    ["Home", "Data Visualization", "Make Prediction", "Model Comparison", "Drift Monitoring"]
+# Introduction
+st.write("### Welcome to the Breast Cancer Prediction Dashboard")
+st.write(
+    "This dashboard allows you to make real-time predictions for breast cancer "
+    "and monitor model performance using MLflow."
 )
 
-# Home Page
-if options == "Home":
-    st.write("## Welcome to the Breast Cancer Prediction Dashboard")
-    st.markdown("""
-    - **Train and deploy models automatically** using MLflow.
-    - **Visualize feature distributions and detect data drift.**
-    - **Compare different model versions and track performance.**
-    - **Make real-time predictions using the latest trained model.**
-    """)
+# Prediction Section
+st.subheader("Make a Prediction")
 
-# Data Visualization
-elif options == "Data Visualization":
-    st.subheader("Feature Distribution")
+# Load feature names (you might need to adjust based on your dataset)
+feature_names = [
+    "radius1", "texture1", "perimeter1", "area1", "smoothness1",
+    "compactness1", "concavity1", "concave_points1", "symmetry1", "fractal_dimension1",
+    "radius2", "texture2", "perimeter2", "area2", "smoothness2",
+    "compactness2", "concavity2", "concave_points2", "symmetry2", "fractal_dimension2",
+    "radius3", "texture3", "perimeter3", "area3", "smoothness3",
+    "compactness3", "concavity3", "concave_points3", "symmetry3", "fractal_dimension3"
+]
 
-    # Select a feature for visualization
-    feature = st.selectbox("Select a feature to visualize:", df.columns)
+# Create input fields
+input_data = {feature: st.number_input(feature, value=0.0) for feature in feature_names}
 
-    # Plot distribution
-    fig, ax = plt.subplots()
-    sns.histplot(df[feature], kde=True, ax=ax)
-    st.pyplot(fig)
+# Convert input to dataframe
+input_df = pd.DataFrame([input_data])
 
-    # Show correlation heatmap if selected
-    if st.checkbox("Show Correlation Heatmap"):
-        fig, ax = plt.subplots(figsize=(10, 8))
-        sns.heatmap(df.corr(), cmap="coolwarm", annot=True, fmt=".2f", ax=ax)
-        st.pyplot(fig)
-
-# Make Prediction
-elif options == "Make Prediction":
-    st.subheader("Enter Patient Data for Prediction")
-
-    # Create input fields for user data
-    input_data = {feature: st.number_input(f"{feature}", value=0.0) for feature in df.columns}
-
-    # Convert input to dataframe
-    input_df = pd.DataFrame([input_data])
-
-    # Send request to API for prediction
-    if st.button("Predict"):
-        try:
-            response = requests.post("http://127.0.0.1:8000/predict/", json=input_data)
-            prediction = response.json().get("prediction", "Error retrieving prediction")
-            st.success(f"Prediction: {prediction}")
-        except requests.exceptions.RequestException:
-            st.error("Error: Unable to connect to the prediction API.")
-
-# Model Comparison (MLflow)
-elif options == "Model Comparison":
-    st.subheader("Compare Model Versions")
-
-    # Retrieve registered models
-    models = client.search_model_versions("name='BreastCancerModel'")
-    
-    # Display model versions and metrics
-    for model in models:
-        st.write(f"**Version {model.version}** - {model.current_stage}")
-        run = client.get_run(model.run_id)
-        st.write(f"- Accuracy: {run.data.metrics.get('accuracy', 'N/A'):.4f}")
-        st.write(f"- Registered: {model.creation_timestamp}")
-        st.write("---")
-
-    # Visualizing Optuna hyperparameter tuning results
-    st.subheader("Hyperparameter Optimization Results")
-
+# Make Prediction Button
+if st.button("Predict"):
     try:
-        st.subheader("Optimization History")
-        st.components.v1.html(open("reports/optuna_optimization_history.html").read(), height=600)
+        response = requests.post(f"{API_URL}/predict/", json=input_data)
+        prediction = response.json().get("prediction", "Error retrieving prediction")
+        st.success(f"Prediction: {prediction}")
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to connect to the prediction API. Ensure the API is running.\n\nError: {e}")
 
-        st.subheader("Parallel Coordinates")
-        st.components.v1.html(open("reports/optuna_parallel_coordinates.html").read(), height=600)
+# Drift Monitoring Section
+st.subheader("Data Drift Monitoring")
+try:
+    drift_results = pd.read_csv("reports/drift_report.csv")
+    st.write(drift_results)
 
-        st.subheader("Feature Importance")
-        st.components.v1.html(open("reports/optuna_param_importances.html").read(), height=600)
-    except FileNotFoundError:
-        st.error("Error: Optuna visualization reports not found.")
-
-# Drift Monitoring
-elif options == "Drift Monitoring":
-    st.subheader("Feature Drift Detection")
-
-    try:
-        drift_results = pd.read_csv("reports/drift_report.csv")
-        st.write(drift_results)
-
-        drifted_features = drift_results[drift_results["Drift Detected"] == "Yes"]
-        if not drifted_features.empty:
-            st.warning("Data drift detected in the following features:")
-            st.write(drifted_features)
-        else:
-            st.success("No significant data drift detected.")
-
-    except FileNotFoundError:
-        st.error("Error: Drift report not found. Run `drift_detector.py` first.")
+    drifted_features = drift_results[drift_results["Drift Detected"] == "Yes"]
+    if not drifted_features.empty:
+        st.warning("⚠️ Data drift detected in the following features:")
+        st.write(drifted_features)
+    else:
+        st.success("No significant data drift detected.")
+except FileNotFoundError:
+    st.error("Error: Drift report not found.")

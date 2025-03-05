@@ -1,11 +1,13 @@
-import os
 import uvicorn
 import mlflow.pyfunc
 import joblib
 import pandas as pd
 from fastapi import FastAPI
 from pydantic import BaseModel
-from src.config import MLFLOW_TRACKING_URI, API_HOST, API_PORT  # Use centralized config
+import os
+
+# Load environment variables
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://breast_cancer_mlflow:5001")
 
 # Initialize FastAPI application
 app = FastAPI(title="Breast Cancer Prediction API")
@@ -43,40 +45,26 @@ class PredictionInput(BaseModel):
     symmetry3: float
     fractal_dimension3: float
 
-# Load the model from MLflow; fallback to a locally stored joblib model if necessary
-model = None
-model_source = "Unknown"
-
+# Try loading the model from MLflow first
 try:
     mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
     model = mlflow.pyfunc.load_model("models:/BreastCancerModel/Production")
     model_source = "MLflow"
-    print("Loaded model from MLflow.")
 except Exception as e:
-    print(f"Warning: Failed to load MLflow model: {e}. Attempting to load local model...")
-    try:
-        model = joblib.load("model/best_model.pkl")
-        model_source = "Local joblib model"
-        print("Loaded local model successfully.")
-    except Exception as e:
-        print(f"Critical Error: Failed to load any model! {e}")
-        model_source = "No model available"
+    print(f"Warning: Failed to load MLflow model: {e}. Loading local model instead.")
+    model = joblib.load("model/best_model.pkl")
+    model_source = "Local joblib model"
 
 @app.get("/")
 def home():
-    """API health check endpoint."""
     return {"message": f"Breast Cancer Prediction API is running. Model source: {model_source}"}
 
 @app.post("/predict/")
 def predict(data: PredictionInput):
-    """Predicts the likelihood of breast cancer."""
-    if model is None:
-        return {"error": "No model available for predictions."}
-    
     input_data = pd.DataFrame([data.dict()])
     prediction = model.predict(input_data)
     diagnosis = "Malignant" if prediction[0] == 1 else "Benign"
     return {"prediction": diagnosis}
 
 if __name__ == "__main__":
-    uvicorn.run(app, host=API_HOST, port=API_PORT)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
