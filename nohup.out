@@ -1,6 +1,0 @@
-2025-03-03 22:15:50.852 Port 8501 is already in use
-Traceback (most recent call last):
-  File "/Users/drewmelendez/Documents/Git/Breast-Cancer-Diagnosis/src/inference_api.py", line 8, in <module>
-    from src.config import MLFLOW_TRACKING_URI, API_HOST, API_PORT  # Use centralized config
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ModuleNotFoundError: No module named 'src'
